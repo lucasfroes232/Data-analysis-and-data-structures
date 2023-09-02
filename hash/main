@@ -1,0 +1,264 @@
+/*
+Lucas Froes Belinassi 815457
+Lucas Nunes Garcia 811946
+*/
+
+#include <iostream>
+#include <vector>
+#include <list>
+#include <time.h>
+#include <algorithm>
+
+using namespace std;
+
+class HashTable
+{
+private:
+    int tamanho;
+    vector<list<int>> hash_table;
+
+public:
+    HashTable(int tamanho) : hash_table(tamanho)
+    {
+        this->tamanho = tamanho;
+    }
+
+    int fhash(int x)
+    {
+        return x % tamanho;
+    }
+
+    void insert(int x)
+    {
+        int indice = fhash(x);
+        hash_table[indice].push_back(x);
+    }
+
+    bool search(int x)
+    {
+        int indice = fhash(x);
+        for (int num : hash_table[indice])
+        {
+            if (num == x)
+                return true;
+        }
+        return false;
+    }
+
+    bool remove(int x)
+    {
+        bool teste = search(x);
+        int indice = fhash(x);
+        if (teste)
+        {
+            hash_table[indice].erase(std::remove(hash_table[indice].begin(), hash_table[indice].end(), x), hash_table[indice].end());
+            return true;
+        }
+        else
+            return false;
+    }
+
+    void imprime()
+    {
+        for (int i = 0; i < tamanho; i++)
+        {
+            cout << "Slot " << i << ": ";
+            for (int num : hash_table[i])
+            {
+                cout << num << ", ";
+            }
+            cout << endl;
+        }
+    }
+};
+class hashTableAberto
+{
+private:
+    int *estrutura;
+    int tam;
+    int funcaoHash(int x)
+    {
+        return (x % this->tam);
+    }; // retorna um indice para por no vetor
+    int linearProbing(int x, int i)
+    {
+        return ((x + i) % tam);
+    };
+    int quadraticProbing(int x, int i)
+    {
+        return ((x + i + (i * i)) % tam);
+    };
+    int doubleHashing(int x, int i)
+    {
+        int k1 = funcaoHash(x);
+        int k2 = 1 + (x % (tam - 1));
+        return ((k1 + (i * k2)) % tam);
+    };
+
+public:
+    hashTableAberto(int tamanho)
+    {
+        tam = tamanho;
+        estrutura = new int[tamanho];
+        for( int i = 0; i<tam; i++){
+            estrutura[i] = -1;
+        }
+    }
+    void inserirElemento(int x)
+    {
+        int i = 0;
+        int indice=funcaoHash(x);
+        do
+        {
+            if (estrutura[indice] == -1 || estrutura[indice] == -2)
+            {
+                estrutura[indice] = x;
+                break;
+            }
+            else
+            {
+                i++;
+                //indice = linearProbing( x,i);
+                indice = quadraticProbing(x, i);
+                // indice= doubleHashing( x,i);
+            }
+        } while (i != tam);
+    }
+    bool buscar(int x)
+    {
+        int i = 0;
+        int indice = funcaoHash(x);;
+        bool achou = false;
+        do
+        {
+            if (estrutura[indice] == x)
+            {
+                achou = true;
+                break;
+            }
+            i++;
+             //indice = linearProbing( x,i);
+            indice = quadraticProbing(x, i);
+            // indice= doubleHashing( x,i);
+        } while (i != tam or estrutura[indice] != -1);
+        return achou;
+    };
+    void remover(int x)
+    {
+        if (buscar(x))
+        {
+            int i = 0;
+            int indice= funcaoHash(x);
+            do
+            {
+                if (estrutura[indice] == x)
+                {
+                    estrutura[indice] = -2;//removido
+                    break;
+                }
+                i++;
+                //indice = linearProbing( x,i);
+                indice = quadraticProbing(x, i);
+                // indice= doubleHashing( x,i);
+            } while (i != tam);
+        }
+        else
+        {
+            cout << "Elemento não encontrado\n";
+            cout << "Nada foi removido\n";
+        }
+    };
+    void imprimir(){
+        for (int i = 0; i < tam; i++)
+        {
+            cout << "Slot " << i << ": "<< estrutura[i]<< endl;
+        }
+    };
+};
+
+int main()
+{
+
+    int m;
+    cout << "Tamanho da tabela encadeada: ";
+    cin >> m;
+
+    int a[100] = {132, 693, 33, 1411, 540, 455, 398, 1235, 1289, 1512, 776, 1711, 1523, 365, 1469, 97, 1500, 819, 188, 314, 995, 410, 1196, 1763, 697, 148, 768, 1494, 659, 46, 1353, 302, 350, 1933, 28, 970, 190, 55, 1564, 1057, 1400, 127, 1463, 615, 1843, 1417, 38, 300, 342, 1865, 808, 753, 105, 1114, 9, 743, 1277, 872, 671, 1093, 1440, 267, 609, 1577, 1061, 1659, 1245, 698, 265, 1101, 732, 1704, 391, 1999, 1273, 982, 624, 791, 1236, 1254, 21, 535, 1698, 1491, 1719, 1443, 199, 468, 530, 518, 1926, 144, 116, 705, 1256, 573, 1268, 214, 987, 1486};
+
+    HashTable hash_table(m);
+
+    for (int i = 0; i < m; i++)
+    {
+        int key;
+        // cout<<"Insira o valor: ";
+        // cin>>key;
+        // cout<<endl;
+        hash_table.insert(a[i]);
+    }
+
+    cout << "Qual número procura?";
+    int busca;
+    cin >> busca;
+    if (hash_table.search(busca))
+    {
+        cout << busca << " encontrado na tabela de hash." << endl;
+    }
+    else
+    {
+        cout << busca << " não encontrado na tabela de hash." << endl;
+    }
+
+    cout << "Tabela de hash:" << endl;
+    hash_table.imprime();
+    
+    cout << "Tamanho da tabela de enderecamento aberto: ";
+    cin >> m;
+    hashTableAberto ha(m);
+    int opcao;
+    cout << "Digite 1 para inserir um elemento!\n";
+    cout << "Digite 2 para remover um elemento!\n";
+    cout << "Digite 3 para busca um elemento!\n";
+    cout << "Digite 4 para imprimir!\n";
+    cin>>opcao;
+    while(opcao != 0){
+        switch (opcao)
+    {
+        int x;
+    case 1:
+        cout<<"Valor da chave"<<endl;
+        cin>>x;
+        ha.inserirElemento(x);
+        cout<<"OPCAO"<<endl;
+        cin>>opcao;
+        break;
+    case 2:
+        cout<<"Valor da chave"<<endl;
+        cin>>x;
+        ha.remover(x);
+        cout<<"OPCAO"<<endl;
+        cin>>opcao;
+        break;
+    case 3:
+        cout<<"Valor da chave"<<endl;
+        cin>>x;
+        if(ha.buscar(x)){
+            cout<<"esta na tabela"<<endl;;
+        }else{
+            cout<<"não esta"<<endl;;
+        }
+        cout<<"OPCAO"<<endl;
+        cin>>opcao;
+        break;
+    case 4:
+        ha.imprimir();
+        cout<<"OPCAO"<<endl;
+        cin>>opcao;
+        break;
+
+    default:
+        break;
+    
+    }
+    }
+    
+}
